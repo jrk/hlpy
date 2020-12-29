@@ -1,23 +1,13 @@
-# These are parameterized over inputs. Properly general, but verbose, and
-# doesn't correspond to actual Halide
-def blur_x(x : Var, y : Var, inp : Func):
-    return (inp(x-1, y) + inp(x, y) + inp(x+1, y))/3
-
-def blur_y(x : Var, y : Var, bx : Func):
-    return (bx(x, y-1) + bx(x, y) + bx(x, y+1))/3
-
-# TODO: What about return types? Consider setting / checking them?
-
 # Raw and simple.
 # Pure funcs are actually just sensible (if slow) Python!
 # Is it possible to interpret these with a vectorized semantics where they also take *intervals* for the dimensions, and return arrays?
 inp = Buffer(UInt(16), 2)
 
-@Func
+@func
 def blur_x(x, y):
     return (inp(x-1, y) + inp(x, y) + inp(x+1, y)) / 3
 
-@Func
+@func
 def blur_y(x, y):
     return (blur_x(x-1, y) + blur_x(x, y) + blur_x(x+1, y)) / 3
 
@@ -25,16 +15,16 @@ def blur_y(x, y):
 # This seems potentially confusing.
 # Do we close over the x,y of the parent?
 # Do the vectorized semantics properly carry over?
-@Func # or @MultiStageFunc?
+@func # or @MultiStageFunc?
 def multi_stage(x, y):
-    @Pure # or @Init or @Func
+    @pure # or @Init or @func
     def init(x,y):
         return 0
     
     # This initialization can't be very general
     res = init(x,y)
 
-    @Update
+    @update
     def upd():
         for i in seq(-1,1):
             for j in seq(-1,1):
@@ -43,9 +33,9 @@ def multi_stage(x, y):
     return res # ugly, but clear?
 
 # What about a histogram & scan?
-@Func
+@func
 def hist(i):
-    @Pure
+    @pure
     def init(i):
         return 0
     
@@ -56,7 +46,7 @@ def hist(i):
     # Alternate:
     res = init([min(0, i), max(255, i)])
     
-    @Update
+    @update
     def upd():
         for y in seq(inp.height()):
             for x in seq(inp.width()):
@@ -66,21 +56,21 @@ def hist(i):
     # If the initialized interval is larger than i, then this should be sliced
     return res(i)
 
-@Func
+@func
 def cdf(i):
-    @Pure 
+    @pure 
     def init(i):
         return 0
     # This dummy init is getting tiresome!
     
     res = init(i)
     
-    @Update
+    @update
     def upd():
         for i in seq(0, 255):
             res[i] = res[i-1]+hist(i)
 
-@Func
+@func
 def normalized(x,y):
     return cdf(inp(x,y))
 
@@ -90,6 +80,20 @@ def normalized(x,y):
 #   It would have the computed interval set on the init, and the result sliced out to return
 
 
-# TODO: Are generators just functions which return Funcs?
+# TODO: Are generators just functions which locally define and return Funcs?
 
 # TODO: Try porting all of an app to see how it looks
+
+
+###############
+# Alternates
+###############
+# These are parameterized over inputs. Properly general, but verbose, and
+# doesn't correspond to actual Halide
+def blur_x(x : Var, y : Var, inp : Func):
+    return (inp(x-1, y) + inp(x, y) + inp(x+1, y))/3
+
+def blur_y(x : Var, y : Var, bx : Func):
+    return (bx(x, y-1) + bx(x, y) + bx(x, y+1))/3
+
+# TODO: What about return types? Consider setting / checking them?
