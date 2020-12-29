@@ -115,3 +115,72 @@ def blur_y(x : Var, y : Var, bx : Func):
     return (bx(x, y-1) + bx(x, y) + bx(x, y+1))/3
 
 # TODO: What about return types? Consider setting / checking them?
+
+#
+# Stripped down update stage syntax
+#
+#   - If it's a multi-stage func, we don't need decorators inside. It should all
+#     be defs, with the first a pure init, and the rest updates taking a result
+#     buffer.
+#
+#   - Inner stage definitions DO NOT take Var arguments. They have to close over
+#     the vars of the parent. If the  since those are the only dims which are
+#     actually available. Paired with a simple syntactic rule that a multi-stage
+#     func can ONLY contain a list of `def`s and no other statements, this
+#     should syntactically (roughly) enforce a clear model of what is
+#     semantically possible.
+#
+#   - Maybe the semantics aren't that bad? They hopefully just correspond to the
+#     decorator implying that you add a final line to return the result of
+#     applying each of the stages in order:
+#     
+#       return upd2(upd1(init())) # still implicitly closed over x,y
+#     
+#     For bounds inference of RDoms to work, this probably also requires that
+#     init() first be extended to take explicit bounds, which are also computed
+#     and inserted from all the update steps.
+#
+@func
+def hist(i):
+    def init():
+        return 0
+
+    def upd(res):
+        for y in seq(inp.height()):
+            for x in seq(inp.width()):
+                # brackets for the result update, implying that it's a mutable
+                # array at this point?
+                res[inp(x,y)] += 1
+
+@func
+def blur(x, y):
+    # Consider: default init to 0 is optional?
+    
+    # Consider: make update buffer argument optional, allow recursive use of
+    #           func name instead?
+    #
+    # I actually think this is just less clear. The idea of having a mutable
+    # result buffer for updates makes the model, and how these are different
+    # from pure stages, seem significantly more obvious.
+    def upd():
+        for i in seq(-1,1):
+            for j in seq(-1,1):
+                blur[x,y] += inp(x+i, y+j)
+
+@func
+def iir_blur(x, y):
+    def init():
+        return undef(float)
+    
+    def init_top(buf):
+        buf[x, 0] = inp(x, 0)
+    
+    def down_columns(res):
+        for ry in seq(1, height):
+            res[x, ry] = (1 - alpha) * res(x, ry - 1) + alpha * input(x, ry)
+    
+    def up_columns(res):
+        for ry in seq(1, height):
+            flip_ry = height - y - 1 # this just becomes an Expr
+            res[x, flip_ry] = (1 - alpha) * res[x, flip_ry + 1] + alpha * res[x, flip_ry]
+        
