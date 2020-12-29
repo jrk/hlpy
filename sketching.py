@@ -31,6 +31,8 @@ def multi_stage(x, y):
                 res += inp(x+i, y+j)
     
     return res # ugly, but clear?
+    # What about applying the update(s)?
+    #   return upd(res)?
 
 # What about a histogram & scan?
 @func
@@ -79,6 +81,15 @@ def normalized(x,y):
 #   What would a bounds protocol compatible version of the histogram or cdf look like?
 #   It would have the computed interval set on the init, and the result sliced out to return
 
+# For the vectorized semantics to work without some vector calls in the return statement, this would probably have to be rewritten in the decorator to implicitly allocate the return buffer over x,y, then populate and return that:
+@func
+def test(x,y):
+    return 0 # would not generate a vector, even if x,y were vectors
+
+def test_transformed(x, y):
+    res = alloc(x,y)
+    res(x,y) = 0
+    return res
 
 # TODO: Are generators just functions which locally define and return Funcs?
 
