@@ -5,6 +5,8 @@
 # %% [markdown]
 # This is exploratory _sketching_, and not internally consistent — it is meant to
 # be toying with different possible syntax ideas in different places.
+#
+# It is mostly *linear*, and can be roughly read top-to-bottom as a progression of ideas.
 
 # %% [markdown]
 # # A first cut
@@ -161,10 +163,10 @@ def test_transformed(x, y):
 # correspond to actual Halide
 
 # %%
-def blur_x(x : Var, y : Var, inp : Func):
+def blur_x(x : var, y : var, inp : func):
     return (inp(x-1, y) + inp(x, y) + inp(x+1, y))/3
 
-def blur_y(x : Var, y : Var, bx : Func):
+def blur_y(x : var, y : var, bx : func):
     return (bx(x, y-1) + bx(x, y) + bx(x, y+1))/3
 
 
@@ -172,7 +174,7 @@ def blur_y(x : Var, y : Var, bx : Func):
 # - [ ] **TODO:** What about return types? Consider setting / checking them?
 
 # %% [markdown]
-# # Revision 1
+# # Revision 2
 # ## Stripped down update stage syntax
 #
 #   - If it's a multi-stage func, we don't need decorators inside. It should all
