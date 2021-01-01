@@ -12,7 +12,7 @@
 # Assume the existence of some core Halide decorators and types:
 # %%
 def _nop(*args, **kwargs): pass
-func = pure = update = pipe = _nop
+func = pure = update = pipe = var = _nop
 Buffer = UInt = Int = Float = _nop
 
 # %% [markdown]
@@ -99,7 +99,9 @@ def hist(i):
         for y in seq(inp.height()):
             for x in seq(inp.width()):
                 # Should this be (call) or [array index]?
-                res(inp(x,y)) += 1
+                res[inp(x,y)] += 1
+                # It *has* to be array index, because Python won't parse an
+                # assign to a call!
 
     # If the initialized interval is larger than i, then this should be sliced
     return res(i)
@@ -144,7 +146,7 @@ def test(x,y):
 
 def test_transformed(x, y):
     res = alloc(x,y)
-    res(x,y) = 0
+    res[x,y] = 0
     return res
 
 
