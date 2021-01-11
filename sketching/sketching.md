@@ -373,6 +373,7 @@ every level as a nested pair of pipelines?
 
 ***
 # Pending Ideas & Questions
+- [ ] What about **conditional expressions**? It would be really nice to allow **if/else** syntax, not just select.
 - [ ] With the nesting of function definitions to create multi-stage Funcs and
   Pipelines/generators, should we consider a **class**-based top-level
   structure, instead of a **function**-based one?

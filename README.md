@@ -16,8 +16,5 @@ $ pipenv shell # enter the environment, if not using direnv
 
 # TODO
 - [x] Start project template
-- [ ] Define IR for front-end
-    - Use dataclass
-    - Do we *also* want to inherit from `ast.AST` to enable `ast.NodeVisitor` traversal, or should we make our own visitor scheme?
-        - Turns out [it's trivial](https://github.com/python/cpython/blob/master/Lib/ast.py#L386), and we can easily roll our own
+- [-] Define IR for front-end
 - [ ] Start parsing AST
